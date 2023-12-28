@@ -7,14 +7,23 @@ import {
   uploadBytesResumable,
 } from "firebase/storage";
 import { app } from "../firebase";
+import {
+  updateUserStart,
+  updateUserSuccess,
+  updateUserFailure,
+} from "../redux/user/userSlice";
+import { useDispatch } from "react-redux";
 
 export default function Profile() {
-  const { currentuser } = useSelector((state) => state.user);
+  const { currentuser, loading, error } = useSelector((state) => state.user);
   const fileRef = useRef(null);
   const [file, setFile] = useState(undefined);
   const [filePerc, setFilePerc] = useState(0);
   const [fileUploadError, setFileUploadError] = useState(false);
   const [formData, setFormData] = useState({});
+  const [updateSuccess, setUpdateSuccess] = useState(false);
+
+  const dispatch = useDispatch();
 
   useEffect(() => {
     if (file) {
@@ -46,6 +55,39 @@ export default function Profile() {
     );
   };
 
+  const handleChange = (e) => {
+    setFormData((prevFormData) => ({
+      ...prevFormData,
+      [e.target.id]: e.target.value,
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      dispatch(updateUserStart());
+      const res = await fetch(
+        `/api/user/update/${currentuser._id || currentuser.rest._id}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(formData),
+        }
+      );
+      const data = await res.json();
+      if (data.success === false) {
+        dispatch(updateUserFailure(data.message));
+        return;
+      }
+      dispatch(updateUserSuccess(data));
+      setUpdateSuccess(true);
+    } catch (error) {
+      dispatch(updateUserFailure(error.message));
+    }
+  };
+
   // Firebase Storage Rules
   //  allow read;
   // allow write: if request.resource.size < 2 * 1024 * 1024 &&
@@ -55,7 +97,7 @@ export default function Profile() {
     <div className="p-3 max-w-lg mx-auto">
       <h1 className="text-3xl font-semibold text-center my-7">Profile</h1>
 
-      <form className="flex flex-col gap-4">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <input
           type="file"
           onChange={(e) => setFile(e.target.files[0])}
@@ -65,7 +107,7 @@ export default function Profile() {
         />
         <img
           onClick={() => fileRef.current.click()}
-          src={formData.avatar || currentuser.rest.avatar}
+          src={formData.avatar || currentuser.avatar || currentuser.rest.avatar}
           alt="profile"
           className="rounded-full h-24 w-24 object-cover cursor-pointer self-center mt-2"
         />
@@ -85,23 +127,31 @@ export default function Profile() {
         <input
           type="text"
           placeholder="username"
+          defaultValue={currentuser.username || currentuser.rest.username}
           className="border p-3 rounded-lg"
           id="username"
+          onChange={handleChange}
         />
         <input
           type="email"
           placeholder="email"
+          defaultValue={currentuser.email || currentuser.rest.email}
           className="border p-3 rounded-lg"
           id="email"
+          onChange={handleChange}
         />
         <input
           type="password"
           placeholder="password"
           className="border p-3 rounded-lg"
           id="password"
+          onChange={handleChange}
         />
-        <button className="bg-slate-700 text-white rounded-lg p-3 uppercase hover:opacity-90 duration-200 disabled:opacity-80">
-          update
+        <button
+          disabled={loading}
+          className="bg-slate-700 text-white rounded-lg p-3 uppercase hover:opacity-90 duration-200 disabled:opacity-80"
+        >
+          {loading ? "Loading..." : "Update"}
         </button>
       </form>
 
@@ -113,6 +163,12 @@ export default function Profile() {
           Sign Out
         </span>
       </div>
+      <p className="text-red-600 mt-5 text-center text-sm font-semibold">
+        {error ? error : ""}
+      </p>
+      <p className="text-green-600 mt-5 text-center text-sm font-semibold">
+        {updateSuccess ? "User updated successfully!" : ""}
+      </p>
     </div>
   );
 }

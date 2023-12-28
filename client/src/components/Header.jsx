@@ -37,7 +37,7 @@ export default function Header() {
             {currentuser ? (
               <img
                 className="rounded-full h-7 w-7 object-cover"
-                src={currentuser.rest.avatar}
+                src={currentuser.avatar || currentuser.rest.avatar}
                 alt="profile"
               />
             ) : (

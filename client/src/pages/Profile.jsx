@@ -11,6 +11,9 @@ import {
   updateUserStart,
   updateUserSuccess,
   updateUserFailure,
+  deleteUserFailure,
+  deleteUserStart,
+  deleteUserSuccess,
 } from "../redux/user/userSlice";
 import { useDispatch } from "react-redux";
 
@@ -88,6 +91,26 @@ export default function Profile() {
     }
   };
 
+  const handleDeleteUser = async () => {
+    try {
+      dispatch(deleteUserStart());
+      const res = await fetch(
+        `/api/user/delete/${currentuser._id || currentuser.rest._id}`,
+        {
+          method: "DELETE",
+        }
+      );
+      const data = await res.json();
+      if (data.success === false) {
+        dispatch(deleteUserFailure(data.message));
+        return;
+      }
+      dispatch(deleteUserSuccess(data));
+    } catch (error) {
+      dispatch(deleteUserFailure(error.message));
+    }
+  };
+
   // Firebase Storage Rules
   //  allow read;
   // allow write: if request.resource.size < 2 * 1024 * 1024 &&
@@ -156,7 +179,10 @@ export default function Profile() {
       </form>
 
       <div className="flex justify-between mt-5">
-        <span className="text-red-600 cursor-pointer font-semibold">
+        <span
+          onClick={handleDeleteUser}
+          className="text-red-600 cursor-pointer font-semibold"
+        >
           Delete Account
         </span>
         <span className="text-red-600 cursor-pointer font-semibold">

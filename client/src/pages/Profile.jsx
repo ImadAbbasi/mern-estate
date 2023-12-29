@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import { useSelector } from "react-redux";
 import {
   getDownloadURL,
@@ -151,7 +152,7 @@ export default function Profile() {
           alt="profile"
           className="rounded-full h-24 w-24 object-cover cursor-pointer self-center mt-2"
         />
-        <p className="text-sm self-center h-5">
+        <p className="text-sm self-center h-3">
           {fileUploadError ? (
             <span className="text-red-600">
               Error Uploading Image (image must be less than 2 mb)
@@ -193,6 +194,12 @@ export default function Profile() {
         >
           {loading ? "Loading..." : "Update"}
         </button>
+        <Link
+          to={"/create-listing"}
+          className="bg-green-700 text-white p-3 rounded-lg uppercase text-center hover:opacity-90 duration-200"
+        >
+          Create Listing
+        </Link>
       </form>
 
       <div className="flex justify-between mt-5">

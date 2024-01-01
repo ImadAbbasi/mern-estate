@@ -146,6 +146,25 @@ export default function Profile() {
       setShowListingsError(true);
     }
   };
+
+  const handleListingDelete = async (listingId) => {
+    try {
+      const res = await fetch(`/api/listing/delete/${listingId}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (data.success === false) {
+        console.log("Failed to delete listing.");
+        return;
+      }
+
+      setUserListings((prev) =>
+        prev.filter((listing) => listing._id !== listingId)
+      );
+    } catch (error) {
+      console.log(error.message);
+    }
+  };
   // Firebase Storage Rules
   //  allow read;
   // allow write: if request.resource.size < 2 * 1024 * 1024 &&
@@ -275,7 +294,12 @@ export default function Profile() {
                   <p>{listing.name}</p>
                 </Link>
                 <div className="flex flex-col items-center">
-                  <button className="text-red-600 uppercase">Delete</button>
+                  <button
+                    onClick={() => handleListingDelete(listing._id)}
+                    className="text-red-600 uppercase"
+                  >
+                    Delete
+                  </button>
                   <button className="text-green-600 uppercase">Edit</button>
                 </div>
               </div>

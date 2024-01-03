@@ -53,7 +53,7 @@ export default function Profile() {
           (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
         setFilePerc(Math.round(progress));
       },
-      (error) => {
+      () => {
         setFileUploadError(true);
       },
       () => {
@@ -300,7 +300,9 @@ export default function Profile() {
                   >
                     Delete
                   </button>
-                  <button className="text-green-600 uppercase">Edit</button>
+                  <Link to={`/update-listing/${listing._id}`}>
+                    <button className="text-green-600 uppercase">Edit</button>
+                  </Link>
                 </div>
               </div>
             );

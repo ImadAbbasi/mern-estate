@@ -11,6 +11,8 @@ import { useNavigate } from "react-router-dom";
 
 export default function CreateListing() {
   const { currentuser } = useSelector((state) => state.user);
+  console.log(currentuser._id);
+  console.log(currentuser.rest._id);
   const navigate = useNavigate();
   const [files, setFiles] = useState([]);
   const [formData, setFormData] = useState({
@@ -139,7 +141,7 @@ export default function CreateListing() {
         },
         body: JSON.stringify({
           ...formData,
-          userRef: currentuser._id,
+          userRef: currentuser._id || currentuser.rest._id,
         }),
       });
       const data = await res.json();

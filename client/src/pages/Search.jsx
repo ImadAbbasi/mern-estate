@@ -15,6 +15,7 @@ export default function Search() {
   });
   const [loading, setLoading] = useState(false);
   const [listings, setListings] = useState([]);
+  const [showMore, setShowMore] = useState(false);
 
   useEffect(() => {
     const urlParams = new URLSearchParams(location.search);
@@ -48,11 +49,18 @@ export default function Search() {
 
     const fetchListings = async () => {
       setLoading(true);
+      setShowMore(false);
 
       const searchQuery = urlParams.toString();
       const res = await fetch(`/api/listing/getListings?${searchQuery}`);
 
       const data = await res.json();
+
+      if (data.length > 8) {
+        setShowMore(true);
+      } else {
+        setShowMore(false);
+      }
 
       setListings(data);
       setLoading(false);
@@ -111,8 +119,26 @@ export default function Search() {
     navigate(`/search?${searchQuery}`);
   };
 
+  const onShowMoreClick = async () => {
+    const numberOfListings = listings.length;
+    const startIndex = numberOfListings;
+    const urlParams = new URLSearchParams(location.search);
+
+    urlParams.set("startIndex", startIndex);
+
+    const searchQuery = urlParams.toString();
+
+    const res = await fetch(`/api/listing/getListings?${searchQuery}`);
+    const data = await res.json();
+
+    if (data.length < 9) {
+      setShowMore(false);
+    }
+    setListings([...listings, ...data]);
+  };
+
   return (
-    <div className="flex flex-col md:flex-row md:min-h-screen">
+    <div className="flex flex-col md:flex-row md:min-h-screen ">
       <div className="p-7 border-b-2 md:border-r-2">
         <form onSubmit={handleSubmit} className="flex flex-col gap-8">
           <div className="flex items-center gap-2">
@@ -218,11 +244,11 @@ export default function Search() {
         </form>
       </div>
 
-      <div className="flex-1">
+      <div className="flex-1 ">
         <h1 className="text-3xl font-semibold bordrer-b p-3 text-slate-700 mt-5">
           Listing Results:
         </h1>
-        <div className="p-7 flex flex-wrap gap-4">
+        <div className="p-7 flex flex-wrap gap-4 justify-center items-center">
           {!loading && listings.length === 0 && (
             <p className="text-slate-700 text-xl font-semibold text-center">
               No listing found!
@@ -239,6 +265,15 @@ export default function Search() {
             listings.map((listing) => (
               <ListingItem key={listing._id} listing={listing} />
             ))}
+
+          {showMore && (
+            <button
+              onClick={onShowMoreClick}
+              className="font-semibold hover:underline text-green-700 text-center mt-4 w-full"
+            >
+              Show more
+            </button>
+          )}
         </div>
       </div>
     </div>
